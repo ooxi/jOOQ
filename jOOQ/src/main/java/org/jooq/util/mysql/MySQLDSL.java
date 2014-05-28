@@ -44,6 +44,7 @@ import org.jooq.EnumType;
 import org.jooq.Field;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import static org.jooq.impl.DSL.val;
 
 /**
  * The {@link SQLDialect#MYSQL} specific DSL.
@@ -76,8 +77,17 @@ public class MySQLDSL extends DSL {
      * <p>
      * Don't mix this up with the various {@link DSL#decode()} methods!
      */
-    public static Field<String> decode(Field<String> cryptString, Field<String> keyString) {
-        return function("decode", String.class, cryptString, keyString);
+    public static Field<byte[]> decode(byte[] cryptString, byte[] keyString) {
+        return decode(val(cryptString), val(keyString));
+    }
+
+    /**
+     * Get the MySQL-specific <code>DECODE()</code> function
+     * <p>
+     * Don't mix this up with the various {@link DSL#decode()} methods!
+     */
+    public static <T> Field<T> decode(Field<T> cryptString, Field<T> keyString) {
+        return function("decode", cryptString.getType(), cryptString, keyString);
     }
 
     /**
@@ -90,8 +100,15 @@ public class MySQLDSL extends DSL {
     /**
      * Get the MySQL-specific <code>ENCODE()</code> function
      */
-    public static Field<String> encode(Field<String> string, Field<String> keyString) {
-        return function("encode", String.class, string, keyString);
+    public static Field<byte[]> encode(byte[] string, byte[] keyString) {
+        return encode(val(string), val(keyString));
+    }
+
+    /**
+     * Get the MySQL-specific <code>ENCODE()</code> function
+     */
+    public static <T> Field<T> encode(Field<T> string, Field<T> keyString) {
+        return function("encode", string.getType(), string, keyString);
     }
 
     /**
