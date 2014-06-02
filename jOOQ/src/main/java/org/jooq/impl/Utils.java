@@ -397,9 +397,7 @@ final class Utils {
 
             // Any generated record
             else {
-
-                // [#919] Allow for accessing non-public constructors
-                record = Reflect.accessible(type.getDeclaredConstructor()).newInstance();
+                record = newRecord(type);
             }
 
             // [#3300] Records that were fetched from the database
@@ -411,6 +409,23 @@ final class Utils {
         catch (Exception e) {
             throw new IllegalStateException("Could not construct new record", e);
         }
+    }
+
+    /**
+     * Create instance of generated record
+     */
+    static final <R extends Record> R newRecord(Class<R> type) throws Exception {
+        
+        // Search newInstance method
+        try {
+            Method newInstance = type.getMethod("newInstance", new Class<?>[] {});
+	    Object record = Reflect.accessible(newInstance).invoke(null);
+	    return type.cast(record);
+
+        // [#919] Allow for accessing non-public constructors
+	} catch (NoSuchMethodException e) {
+            return Reflect.accessible(type.getDeclaredConstructor()).newInstance();
+	}
     }
 
     /**
