@@ -493,25 +493,53 @@ final class Utils {
         // Any generated record
         else {
             try {
-
-                // [#919] Allow for accessing non-public constructors
-                final Constructor<R> constructor = Reflect.accessible(type.getDeclaredConstructor());
-
-                return new RecordFactory<R>() {
-                    @Override
-                    public R newInstance() {
-                        try {
-                            return constructor.newInstance();
-                        }
-                        catch (Exception e) {
-                            throw new IllegalStateException("Could not construct new record", e);
-                        }
-                    }
-                };
+                return recordFactory(type);
             }
             catch (Exception e) {
                 throw new IllegalStateException("Could not construct new record", e);
             }
+        }
+    }
+
+    /**
+     * Create a new record factory.
+     */
+    static final <R extends Record> RecordFactory<R> recordFactory(final Class<R> type) throws Exception {
+
+        // Search newInstance method
+        try {
+            final Method newInstance = type.getMethod("newInstance", new Class<?>[] {});
+
+            return new RecordFactory<R>() {
+                @Override
+                public R newInstance() {
+                    try {
+                        Object record = Reflect.accessible(newInstance).invoke(null);
+                        return type.cast(record);
+                    }
+                    catch (Exception e) {
+                        throw new IllegalStateException("Could not construct new record", e);
+                    }
+                }
+            };
+
+        // [#919] Allow for accessing non-public constructors
+        }
+        catch (NoSuchMethodException e) {
+
+            final Constructor<R> constructor = Reflect.accessible(type.getDeclaredConstructor());
+
+            return new RecordFactory<R>() {
+                @Override
+                public R newInstance() {
+                    try {
+                        return constructor.newInstance();
+                    }
+                    catch (Exception e) {
+                        throw new IllegalStateException("Could not construct new record", e);
+                    }
+                }
+            };
         }
     }
 
